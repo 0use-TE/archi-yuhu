@@ -10,14 +10,15 @@
   <link rel="stylesheet" href="style.css">
   <script>
     try {
-      if (!matchMedia('(prefers-reduced-motion: reduce)').matches && !location.hash && document.visibilityState !== 'hidden') {
+      const isHomepage = !location.hash || location.hash === '#top';
+      if (isHomepage && !matchMedia('(prefers-reduced-motion: reduce)').matches && !document.hidden) {
         document.documentElement.classList.add('intro-pending');
         setTimeout(() => document.documentElement.classList.remove('intro-pending'), 1600);
       }
     } catch {}
   </script>
   <script src="content.js" defer></script>
-  <script src="site.js" defer></script>
+  <script src="site.js?v=2" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#about" data-copy="skipContent">跳到正文</a>

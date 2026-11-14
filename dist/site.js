@@ -23,6 +23,7 @@ const ease = value => value * value * (3 - 2 * value);
 const mix = (from, to, fraction) => from + (to - from) * fraction;
 const move = (from, to, fraction) => from.map((value, index) => mix(value, to[index], fraction));
 const viewport = () => ({ width: canvas.clientWidth, height: canvas.clientHeight });
+const isHomepage = () => !location.hash || location.hash === '#top';
 
 function setLanguage(next) {
   language = next === 'en' ? 'en' : 'zh-CN';
@@ -37,12 +38,16 @@ function setLanguage(next) {
   skipButton.textContent = `${copy.skipAnimation}  ↦`;
 }
 
-function measure() {
-  const { width, height } = viewport();
+function resizeCanvas({ width, height }) {
   const scale = Math.min(devicePixelRatio || 1, 2);
   canvas.width = Math.round(width * scale);
   canvas.height = Math.round(height * scale);
   context.setTransform(scale, 0, 0, scale, 0, 0);
+}
+
+function measure() {
+  const { width, height } = viewport();
+  resizeCanvas({ width, height });
   const measured = layers.map(layer => ({ ...layer, ...documentBounds(layer.node) }));
   const initial = measured.filter(layer => layer.node.closest('.topbar, .hero'));
   const opening = initial.filter(layer => layer.y < height * .84 || layer.node.matches('.model-image') && layer.y < height * .91);
@@ -169,7 +174,7 @@ function drawLayer(layer, time, order, view) {
 function finish() {
   if (!tour) return;
   cancelAnimationFrame(tour.frame);
-  context.clearRect(0, 0, tour.width, tour.height);
+  context.clearRect(0, 0, canvas.clientWidth, canvas.clientHeight);
   tour = undefined;
   root.classList.remove('tour-running', 'intro-pending');
   for (const { node } of layers) {
@@ -184,7 +189,7 @@ function drawFrame(timestamp) {
   tour.started ??= timestamp;
   const time = timestamp - tour.started;
   if (time >= tour.end) {
-    scrollTo({ top: tour.view + tour.tail, behavior: 'instant' });
+    scrollTo({ top: root.scrollHeight - canvas.clientHeight, behavior: 'instant' });
     finish();
     return;
   }
@@ -195,7 +200,7 @@ function drawFrame(timestamp) {
   if (Math.abs(nextView - scrollY) > .8) scrollTo({ top: nextView, behavior: 'instant' });
   const view = scrollY;
 
-  context.clearRect(0, 0, tour.width, tour.height);
+  context.clearRect(0, 0, canvas.clientWidth, canvas.clientHeight);
   contactOpacity(time);
   if (scene && time < scene.arrival) {
     const p = ease(reduce(time, scene.start, scene.arrival));
@@ -220,11 +225,11 @@ function start() {
   tour.frame = requestAnimationFrame(drawFrame);
 }
 
-let shouldAutoplay = !location.hash && !reducedMotion.matches;
+let shouldAutoplay = true;
 function autoplay() {
   if (!shouldAutoplay || document.hidden) return;
   shouldAutoplay = false;
-  start();
+  if (isHomepage() && !reducedMotion.matches) start();
 }
 
 try { language = localStorage.getItem('tiger-yu-language') || language; } catch {}
@@ -244,13 +249,33 @@ if (context) {
   window.addEventListener('keydown', event => {
     if (['Escape', 'PageUp', 'PageDown', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(event.key)) finish();
   });
-  for (const event of ['wheel', 'touchmove', 'hashchange', 'resize']) window.addEventListener(event, finish, { passive: true });
+  for (const event of ['wheel', 'touchmove', 'hashchange', 'pagehide']) window.addEventListener(event, finish, { passive: true });
+  window.addEventListener('resize', () => {
+    if (!tour) return;
+    const dimensions = viewport();
+    if (dimensions.width === tour.width) resizeCanvas(dimensions);
+    else finish();
+  }, { passive: true });
+  window.addEventListener('pageshow', event => {
+    if (event.persisted) {
+      shouldAutoplay = true;
+      autoplay();
+    }
+  });
   reducedMotion.addEventListener('change', event => {
     if (event.matches) { shouldAutoplay = false; finish(); }
   });
   document.addEventListener('visibilitychange', () => {
-    if (document.hidden) finish();
-    else autoplay();
+    if (!tour) {
+      autoplay();
+    } else if (document.hidden) {
+      cancelAnimationFrame(tour.frame);
+      tour.pausedAt = performance.now();
+    } else if (tour.pausedAt !== undefined) {
+      if (tour.started !== undefined) tour.started += performance.now() - tour.pausedAt;
+      tour.pausedAt = undefined;
+      tour.frame = requestAnimationFrame(drawFrame);
+    }
   });
   autoplay();
 }
