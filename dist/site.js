@@ -9,15 +9,15 @@ let language = 'zh-CN';
 let tour;
 
 const drawingGroups = [
-  ['.topbar .brand, .topbar nav, .language', 'type'],
-  ['.hero-role, #name, .hero-lead, .primary', 'type'],
-  ['.model-image', 'frame'],
-  ['.sheet-footer .explore', 'type'],
-  ['.section-title, .about .intro, .about .intro + p, .focus-list article, .timeline article, .exchange li', 'type'],
-  ['.contact-inner h2, .contact-inner a, .page-footer > *', 'type'],
+  ['.section', 'rule'],
+  ['.topbar .brand, .language, .primary, .model-image', 'frame'],
+  ['.topbar nav a, .hero-role, #name, .hero-lead, .sheet-footer .explore, .section-title h2, .about .section-content > p, .contact-inner h2, .contact-inner a, .page-footer > *', 'type'],
+  ['.focus-list article:first-child, .timeline article:first-child, .exchange li:first-child', 'frame'],
+  ['.focus-list article + article, .timeline article + article, .exchange li + li', 'copy'],
 ];
 const layers = drawingGroups.flatMap(([selector, kind]) => [...document.querySelectorAll(selector)].map(node => ({ node, kind })));
-const colors = ['#4a4b87', '#b64025', '#2d6b64', '#735285'];
+const tools = { frame: '#af3f27', resize: '#215cb6', type: '#48498d', rule: '#216c5d', copy: '#884181' };
+const durations = { frame: 1390, type: 740, rule: 550, copy: 960 };
 const reduce = (time, from, to) => Math.min(1, Math.max(0, (time - from) / (to - from)));
 const ease = value => value * value * (3 - 2 * value);
 const mix = (from, to, fraction) => from + (to - from) * fraction;
@@ -48,7 +48,14 @@ function resizeCanvas({ width, height }) {
 function measure() {
   const { width, height } = viewport();
   resizeCanvas({ width, height });
-  const measured = layers.map(layer => ({ ...layer, ...documentBounds(layer.node) }));
+  const measured = layers.map(layer => {
+    const bounds = documentBounds(layer.node);
+    return { ...layer, ...bounds, stops: layer.kind === 'type' ? typeStops(layer.node, bounds) : [] };
+  });
+  const measuredByNode = new Map(measured.map(layer => [layer.node, layer]));
+  for (const layer of measured) {
+    if (layer.kind === 'copy') layer.master = measuredByNode.get(layer.node.parentElement.firstElementChild);
+  }
   const initial = measured.filter(layer => layer.node.closest('.topbar, .hero'));
   const opening = initial.filter(layer => layer.y < height * .84 || layer.node.matches('.model-image') && layer.y < height * .91);
   const later = measured.filter(layer => !opening.includes(layer)).sort((a, b) => a.y - b.y || a.x - b.x);
@@ -66,7 +73,6 @@ function measure() {
 
   let view = 0;
   let elapsed = 0;
-  let index = 0;
   for (const scene of scenes) {
     scene.items.sort((a, b) => a.y - b.y || a.x - b.x);
     scene.previousView = view;
@@ -75,10 +81,11 @@ function measure() {
     scene.arrival = elapsed + scene.travel;
     scene.items.forEach((layer, order) => {
       const isOpening = scene === scenes[0];
-      const first = isOpening ? 170 + order * 190 : 70 + order * 148;
+      const first = isOpening ? 170 + order * 152 : 70 + order * 140;
       layer.start = scene.arrival + first;
-      layer.end = layer.start + (layer.kind === 'frame' ? 1380 : layer.h > 120 ? 840 : 660);
-      layer.color = colors[index++ % colors.length];
+      if (layer.master) layer.start = Math.max(layer.start, layer.master.end + 80);
+      const duration = layer.kind === 'frame' && layer.node.matches('.model-image') ? 2110 : durations[layer.kind];
+      layer.end = layer.start + duration;
     });
     elapsed = Math.max(scene.arrival, ...scene.items.map(layer => layer.end)) + 100;
     scene.end = elapsed;
@@ -92,13 +99,27 @@ function measure() {
 }
 
 function documentBounds(node) {
-  let rect = node.getBoundingClientRect();
-  if (node.matches('h1, .hero-role, .hero-lead, .section-title, .timeline article, .contact-inner h2')) {
-    const range = document.createRange();
-    range.selectNodeContents(node);
-    rect = range.getBoundingClientRect();
-  }
+  const rect = node.getBoundingClientRect();
   return { x: rect.left, y: rect.top + scrollY, w: rect.width, h: rect.height };
+}
+
+function typeStops(node, bounds) {
+  const walker = document.createTreeWalker(node, NodeFilter.SHOW_TEXT);
+  const range = document.createRange();
+  const points = [];
+  for (let text = walker.nextNode(); text; text = walker.nextNode()) {
+    if (!text.data.trim()) continue;
+    let offset = 0;
+    for (const character of text.data) {
+      range.setStart(text, offset);
+      offset += character.length;
+      range.setEnd(text, offset);
+      const rect = range.getBoundingClientRect();
+      if (!rect.width || !rect.height) continue;
+      points.push({ x: rect.right - bounds.x, y: rect.top + scrollY - bounds.y, h: rect.height });
+    }
+  }
+  return points;
 }
 
 function line(from, to, color, alpha, dashed = false) {
@@ -114,23 +135,131 @@ function line(from, to, color, alpha, dashed = false) {
   context.restore();
 }
 
-function drawCursor(point, color, alpha) {
+function drawCursor(point, tool, alpha) {
   context.save();
   context.globalAlpha = alpha;
   context.translate(...point);
-  context.fillStyle = color;
+  context.fillStyle = tools[tool];
   context.strokeStyle = '#fffbf1';
-  context.lineWidth = 1.6;
+  context.lineWidth = 1.5;
   context.lineJoin = 'round';
-  context.beginPath();
-  context.moveTo(0, 0);
-  context.lineTo(5.7, 20);
-  context.lineTo(10, 12.7);
-  context.lineTo(18.4, 10.5);
-  context.closePath();
-  context.fill();
-  context.stroke();
+  const shapes = {
+    frame: 'M-1 -13 H1 V-2 H13 V1 H1 V13 H-1 V1 H-13 V-2 H-1 Z',
+    resize: 'M-12 -12 H-3 L-6 -9 L9 6 L12 3 V12 H3 L6 9 L-9 -6 L-12 -3 Z',
+    type: 'M-6 -11 H6 V-8 H2 V8 H6 V11 H-6 V8 H-2 V-8 H-6 Z',
+    rule: 'M0 0 L4 -14 L12 -18 L18 -12 L14 -4 Z M6 -7 L11 -12 L12 -11 L7 -6 Z',
+    copy: 'M0 0 L5 19 L9 12 L17 10 Z M17 13 H20 V17 H24 V20 H20 V24 H17 V20 H13 V17 H17 Z',
+  };
+  const cursor = new Path2D(shapes[tool]);
+  context.fill(cursor, 'evenodd');
+  context.stroke(cursor);
   context.restore();
+}
+
+function selection(x, y, w, h, color, alpha, handles = false) {
+  context.save();
+  context.globalAlpha = alpha;
+  context.strokeStyle = color;
+  context.fillStyle = color;
+  context.fillRect(x, y, w, h);
+  context.globalAlpha = Math.min(1, alpha * 7);
+  context.strokeRect(x, y, w, h);
+  if (handles) {
+    for (const [dx, dy] of [[0, 0], [w, 0], [0, h], [w, h]]) {
+      context.fillStyle = '#fffbf1';
+      context.fillRect(x + dx - 3, y + dy - 3, 6, 6);
+      context.strokeRect(x + dx - 3, y + dy - 3, 6, 6);
+    }
+  }
+  context.restore();
+}
+
+function dimensions(x, y, width, height) {
+  const label = `${Math.round(width)} × ${Math.round(height)}`;
+  context.save();
+  context.font = '600 11px Consolas, monospace';
+  const w = context.measureText(label).width + 12;
+  const left = Math.min(x + 12, tour.width - w - 10);
+  const top = Math.min(y + 13, canvas.clientHeight - 28);
+  context.fillStyle = tools.resize;
+  context.fillRect(left, top, w, 20);
+  context.fillStyle = '#fff';
+  context.fillText(label, left + 6, top + 14);
+  context.restore();
+}
+
+function reveal(layer, amount) {
+  layer.node.style.setProperty('--reveal', Math.min(1, amount * 6));
+  layer.node.style.setProperty('--hidden', `${(1 - amount) * 100}%`);
+}
+
+function drawBox(layer, top, progress, alpha) {
+  const { x, w, h, node } = layer;
+  const isPhoto = node.matches('.model-image');
+  const draft = reduce(progress, 0, .31);
+  const stretch = reduce(progress, .35, .72);
+  const fill = reduce(progress, .73, 1);
+  const width = w * (.68 * ease(draft) + .32 * ease(stretch));
+  const height = h * (.57 * ease(draft) + .43 * ease(stretch));
+  const resizing = progress >= .35;
+  const tool = resizing ? 'resize' : 'frame';
+  const tip = [x + width, top + height];
+  reveal(layer, ease(fill));
+  const outline = alpha * (1 - fill);
+  if (outline > 0) {
+    selection(x, top, width, height, tools[tool], outline * .14, resizing);
+    if (isPhoto && resizing) dimensions(...tip, width, height);
+  }
+  if (isPhoto && fill > 0) tip[1] = top + h * ease(fill);
+  drawCursor(tip, tool, alpha);
+}
+
+function drawTyping(layer, top, progress, alpha) {
+  const { x, stops, node } = layer;
+  if (!stops.length) {
+    reveal(layer, progress);
+    return;
+  }
+  const count = Math.floor(progress * stops.length);
+  const point = stops[Math.max(0, count - 1)];
+  const edge = Math.max(0, point.x);
+  const rowTop = Math.max(0, point.y);
+  const rowBottom = rowTop + point.h;
+  const firstLine = rowTop < 2;
+  node.style.setProperty('--reveal', count > 0 ? 1 : 0);
+  const clip = progress >= 1 ? 'none' : firstLine
+    ? `polygon(0 0, ${edge}px 0, ${edge}px ${rowBottom}px, 0 ${rowBottom}px)`
+    : `polygon(0 0, 100% 0, 100% ${rowTop}px, ${edge}px ${rowTop}px, ${edge}px ${rowBottom}px, 0 ${rowBottom}px)`;
+  node.style.setProperty('--typing-clip', clip);
+  const tip = [x + (count ? edge : 0), top + rowTop + point.h / 2];
+  drawCursor(tip, 'type', alpha);
+}
+
+function drawRule(layer, top, progress, alpha) {
+  const end = [layer.x + layer.w * ease(progress), top];
+  layer.node.style.setProperty('--rule-length', `${100 * ease(progress)}%`);
+  line([layer.x, top], end, tools.rule, alpha * .9);
+  context.fillStyle = tools.rule;
+  context.fillRect(layer.x - 2, top - 2, 4, 4);
+  drawCursor(end, 'rule', alpha);
+}
+
+function drawCopy(layer, top, progress, alpha, view) {
+  const { x, w, h, master } = layer;
+  const travel = ease(reduce(progress, .06, .68));
+  const masterTop = master ? Math.max(-h + 12, master.y - view) : top - 28;
+  const origin = [master?.x ?? x, masterTop];
+  const current = move(origin, [x, top], travel);
+  const fill = reduce(progress, .68, 1);
+  const ghostWidth = mix(master?.w ?? w, w, travel);
+  const ghostHeight = mix(master?.h ?? h, h, travel);
+  reveal(layer, ease(fill));
+  const outline = alpha * (1 - fill);
+  if (outline > 0) {
+    line(origin, current, tools.copy, outline * .65, true);
+    selection(...current, ghostWidth, ghostHeight, tools.copy, outline * .12, true);
+  }
+  drawCursor([current[0] + Math.min(ghostWidth * .52, 145), current[1] + 12], 'copy', alpha);
 }
 
 function contactOpacity(time) {
@@ -139,36 +268,25 @@ function contactOpacity(time) {
 }
 
 function drawLayer(layer, time, order, view) {
-  const { x, y, w, h, start, end, color, node, kind } = layer;
+  const { x, y, h, start, end, kind } = layer;
   const raw = reduce(time, start, end);
   const alpha = reduce(time, start - 270, start) * (1 - reduce(time, end, end + 160));
   const top = y - view;
-  const right = Math.min(tour.width - 21, x + w);
-  if (layer.drawn !== 1 && raw > 0) {
-    const amount = ease(raw);
-    node.style.setProperty('--reveal', Math.min(1, raw * 6));
-    node.style.setProperty('--hidden', `${(1 - amount) * 100}%`);
-    layer.drawn = raw;
-  }
-  if (alpha <= 0) return;
-
-  const begin = [x, top + Math.min(18, h * .67)];
-  let tip;
+  if (raw >= 1 && layer.done) return;
+  if (alpha <= 0 && raw < 1) return;
   if (time < start) {
-    const from = [tour.width * (.40 + (order % 4) * .061), tour.height * (.27 + (order % 3) * .082)];
-    tip = move(from, kind === 'frame' ? [x, top] : begin, ease(reduce(time, start - 270, start)));
-  } else if (kind === 'frame') {
-    const edge = [right, top + h * ease(raw)];
-    line([x, top], [right, top], color, alpha * .7);
-    line([right, top], edge, color, alpha * .7);
-    line([x, edge[1]], edge, color, alpha * .8);
-    tip = edge;
-  } else {
-    tip = [mix(x, right, ease(raw)), begin[1]];
-    if (w > 60) line([x, begin[1] + 4], [tip[0], begin[1] + 4], color, alpha * .43, true);
-    if (h > 56 && raw > .23) line([x - 6, top], [x - 6, top + h * ease(raw)], color, alpha * .52, true);
+    const from = [tour.width * (.38 + (order % 4) * .073), canvas.clientHeight * (.26 + (order % 3) * .084)];
+    const target = kind === 'copy' && layer.master
+      ? [layer.master.x + Math.min(layer.master.w * .52, 145), Math.max(-h + 12, layer.master.y - view) + 12]
+      : [x, top + (kind === 'type' ? Math.min(18, h * .5) : 0)];
+    drawCursor(move(from, target, ease(reduce(time, start - 270, start))), kind, alpha);
+    return;
   }
-  drawCursor(tip, color, alpha);
+  if (kind === 'frame') drawBox(layer, top, raw, alpha);
+  if (kind === 'type') drawTyping(layer, top, raw, alpha);
+  if (kind === 'rule') drawRule(layer, top, raw, alpha);
+  if (kind === 'copy') drawCopy(layer, top, raw, alpha, view);
+  layer.done = raw === 1 && alpha <= 0;
 }
 
 function finish() {
@@ -180,6 +298,8 @@ function finish() {
   for (const { node } of layers) {
     node.style.removeProperty('--reveal');
     node.style.removeProperty('--hidden');
+    node.style.removeProperty('--typing-clip');
+    node.style.removeProperty('--rule-length');
   }
   contact.style.removeProperty('--contact-reveal');
   skipButton.hidden = true;
@@ -208,8 +328,8 @@ function drawFrame(timestamp) {
     const origin = [tour.width * .49, tour.height * .46];
     const target = [destination.x, Math.max(22, Math.min(tour.height - 34, destination.y - scene.view))];
     const tip = move(origin, target, p);
-    line(move(origin, target, Math.max(0, p - .1)), tip, colors[2], .45, true);
-    drawCursor(tip, colors[2], 1);
+    line(move(origin, target, Math.max(0, p - .1)), tip, tools.rule, .45, true);
+    drawCursor(tip, 'rule', 1);
   }
   tour.measured.forEach((layer, order) => drawLayer(layer, time, order, view));
   tour.frame = requestAnimationFrame(drawFrame);

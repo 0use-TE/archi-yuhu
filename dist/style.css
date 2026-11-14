@@ -69,9 +69,10 @@ button[hidden] { display: none; }
 .skip-animation:hover { background: #4a4b68; }
 .intro-pending .topbar, .intro-pending main, .intro-pending .page-footer { opacity: 0; }
 .tour-running { scroll-behavior: auto; overflow-anchor: none; }
-.tour-running [data-build] { opacity: var(--reveal, 0); clip-path: inset(0 var(--hidden, 100%) 0 0); }
+.tour-running [data-build]:not([data-build="rule"]) { opacity: var(--reveal, 0); clip-path: var(--typing-clip, inset(0 var(--hidden, 100%) 0 0)); }
 .tour-running [data-build="frame"] { clip-path: inset(0 0 var(--hidden, 100%) 0); }
 .tour-running .topbar, .tour-running .section { border-color: transparent; }
+.tour-running [data-build="rule"] { background-image: linear-gradient(var(--rule), var(--rule)); background-size: var(--rule-length, 0%) 1px; background-repeat: no-repeat; }
 .tour-running .contact { position: relative; isolation: isolate; background: transparent; }
 .tour-running .contact::before { content: ''; position: absolute; z-index: -1; inset: 0; background: var(--ink); opacity: var(--contact-reveal, 0); }
 
