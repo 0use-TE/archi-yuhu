@@ -1,0 +1,162 @@
+/* 中英文案，从线上 JS 包还原 */
+const originalCopy = {
+  "zh-CN": {
+    "site.title": "Tiger-Yu | 建筑设计",
+    "nav.home": "首页",
+    "nav.about": "关于",
+    "nav.experience": "经历",
+    "nav.contact": "联系",
+    "hero.greeting": "您好，我是",
+    "hero.title": "建筑设计师",
+    "hero.subtitle": "拥有三十年建筑设计、城市规划与大型项目设计主持经验",
+    "hero.cta": "了解更多",
+    "hero.coop": "商务合作｜请发送需求至",
+    "hero.coop.email": "邮箱",
+    "about.title": "关于我",
+    "about.intro": "Tiger-Yu，男，1974年10月出生，华中科技大学建筑学学士。",
+    "about.intro2": "拥有三十年建筑设计、城市规划与大型项目设计主持经验，曾参与及主持大中型方案近百项。",
+    "about.intro3": "英语精熟，商务英语谈判能力突出，具备优秀的听说读写综合能力，口语表达流利，擅长跨境跨文化沟通协作。多次与香港、美国、澳大利亚、泰国等多国建筑师团队合作。",
+    "summary.title": "专业能力概要",
+    "summary.1": "拥有三十年建筑设计、城市规划与大型项目设计主持经验，曾参与及主持大中型方案近百项",
+    "summary.2": "英语精熟，商务英语谈判能力突出，具备优秀的听说读写综合能力，口语表达流利，擅长跨境跨文化沟通协作",
+    "summary.3": "多次与香港、美国、澳大利亚、泰国等多国建筑师团队合作",
+    "summary.4": "对城市设计、产业园区、综合体开发等领域有系统经验和独到见解",
+    "summary.5": "能有效助力企业海外业务拓展与国际项目合作，提供从技术沟通至合同谈判的全流程专业支持",
+    "summary.6": "为海外业主及国际设计机构，提供由中国顶尖设计团队进行施工图深化、设计优化及本地化合规审查的一站式服务",
+    "experience.title": "职业经历",
+    "experience.years.1": "2006–至今",
+    "experience.company.1": "深圳市建筑设计研究总院有限公司",
+    "experience.role.1": "创设院副院长、主创建筑师、设计总监",
+    "experience.desc.1": [
+      "主持多个大型中标项目方案设计，担任团队首席主创",
+      "对接国际联合项目中的技术对接与商务洽谈，推动项目高效落地"
+    ],
+    "experience.years.2": "2002–2006",
+    "experience.company.2": "深圳陈世民建筑师事务所",
+    "experience.role.2": "建筑师",
+    "experience.desc.2": [
+      "师从建筑大师陈世民，深入理解前沿设计理念与国际化表达方式",
+      "作为核心成员参与北京奥林匹克公园规划竞赛（中外合作项目四人组）"
+    ],
+    "experience.years.3": "1998–2002",
+    "experience.company.3": "香港王董国际有限公司深圳公司 / 深圳艺洲建筑师事务所",
+    "experience.role.3": "建筑师",
+    "experience.desc.3": [
+      "早期参与多项住宅、公建类项目设计，夯实专业基础与项目执行力"
+    ],
+    "international.title": "国际交流与活动",
+    "international.1": "2024年随考察团去巴基斯坦，与巴基斯坦拉合尔省签订MOU核心主谈人员",
+    "international.2": "2024年受香港土木工程拓展署邀请，出席香港未来十年城市建设发展推介会",
+    "international.3": "受邀担任香港中文大学建筑学院城市规划设计课程嘉宾",
+    "international.4": "多次为知名企业及机构提供专业讲座与方案评审",
+    "international.5": "2025年香港数码港集团新一期开发，其顾问公司普华永道特邀腾讯会议访谈",
+    "background.title": "教育与语言",
+    "education.title": "教育背景",
+    "education.1": "1992–1996 华中科技大学 建筑学学士",
+    "language.title": "语言能力",
+    "language.1": "大学二年级通过英语六级，获商务英语三级证书",
+    "language.2": "曾任校英语协会会长，深圳英语沙龙主持，具备出色的英语组织与表达能力",
+    "language.3": "英语：C1 流利级（CEFR标准），具备专业谈判、技术交流及学术演讲能力",
+    "contact.title": "联系方式",
+    "contact.email": "邮箱",
+    "contact.phone": "电话",
+    "contact.ready": "期待与您合作",
+    "footer.rights": "版权所有"
+  },
+  "en": {
+    "site.title": "Tiger-Yu | Architecture",
+    "nav.home": "Home",
+    "nav.about": "About",
+    "nav.experience": "Experience",
+    "nav.contact": "Contact",
+    "hero.greeting": "Hello, I am",
+    "hero.title": "Architectural Designer",
+    "hero.subtitle": "With 30 years of experience in architectural design, urban planning, and leading large-scale projects",
+    "hero.cta": "Learn More",
+    "hero.coop": "Business Cooperation | Send your inquiry via",
+    "hero.coop.email": "email",
+    "about.title": "About Me",
+    "about.intro": "Tiger-Yu, Male, born October 1974, Bachelor of Architecture from Huazhong University of Science and Technology.",
+    "about.intro2": "With 30 years of experience in architectural design, urban planning, and large-scale project leadership, having participated in and led nearly 100 medium to large-scale projects.",
+    "about.intro3": "Fluent in English with outstanding business negotiation skills. Excellent comprehensive ability in listening, speaking, reading, and writing. Fluent oral expression, specializing in cross-border and cross-cultural communication and collaboration. Multiple collaborations with architectural teams from Hong Kong, USA, Australia, Thailand, and other countries.",
+    "summary.title": "Professional Summary",
+    "summary.1": "30 years of experience in architectural design, urban planning, and large-scale project leadership, having participated in and led nearly 100 medium to large-scale projects",
+    "summary.2": "Fluent in English with outstanding business negotiation skills, excellent comprehensive ability in listening, speaking, reading, and writing, fluent oral expression, specializing in cross-border and cross-cultural communication",
+    "summary.3": "Multiple collaborations with architectural teams from Hong Kong, USA, Australia, Thailand, and other countries",
+    "summary.4": "Systematic experience and unique insights in urban design, industrial parks, and mixed-use development",
+    "summary.5": "Effectively assists enterprises in overseas business expansion and international project cooperation, providing full-process professional support from technical communication to contract negotiation",
+    "summary.6": "Providing one-stop services for overseas clients and international design firms, including construction drawing deepening, design optimization, and local compliance review by China's top design teams",
+    "experience.title": "Professional Experience",
+    "experience.years.1": "2006 – Present",
+    "experience.company.1": "Shenzhen Architectural Design Research Institute Co., Ltd.",
+    "experience.role.1": "Deputy Dean of Creative Institute, Lead Architect, Design Director",
+    "experience.desc.1": [
+      "Led multiple large-scale winning project designs as chief lead architect",
+      "Managed technical coordination and business negotiations for international joint projects, ensuring efficient project delivery"
+    ],
+    "experience.years.2": "2002 – 2006",
+    "experience.company.2": "Chen Shimin Architect Office, Shenzhen",
+    "experience.role.2": "Architect",
+    "experience.desc.2": [
+      "Studied under master architect Chen Shimin, gaining deep understanding of cutting-edge design concepts and international expression",
+      "Core member of the four-person team for Beijing Olympic Park planning competition (China-foreign cooperation project)"
+    ],
+    "experience.years.3": "1998 – 2002",
+    "experience.company.3": "Hong Kong Wong & Dong International Ltd. Shenzhen / Shenzhen Yizhou Architect Office",
+    "experience.role.3": "Architect",
+    "experience.desc.3": [
+      "Early career involvement in numerous residential and public building projects, building solid professional foundation and project execution ability"
+    ],
+    "international.title": "International Exchange & Activities",
+    "international.1": "2024 - Led negotiations as core team member during delegation visit to Pakistan, signing MOU with Lahore Province",
+    "international.2": "2024 - Invited by Hong Kong Civil Engineering and Development Department to attend Hong Kong Future Decade Urban Development Promotion Conference",
+    "international.3": "Guest lecturer for Urban Planning and Design course at School of Architecture, Chinese University of Hong Kong",
+    "international.4": "Delivered professional lectures and served on review panels for renowned enterprises and institutions",
+    "international.5": "2025 - Special interview invitation from PwC (consultant to Cyberport Hong Kong) via Tencent Meeting for new development phase",
+    "background.title": "Background",
+    "education.title": "Education",
+    "education.1": "1992 – 1996 Huazhong University of Science and Technology, Bachelor of Architecture",
+    "language.title": "Language Proficiency",
+    "language.1": "Passed CET-6 in sophomore year, holds Business English Level 3 Certificate",
+    "language.2": "Former President of University English Association, host of Shenzhen English Salon, with excellent English organizational and expressive abilities",
+    "language.3": "English: C1 Fluent Level (CEFR), capable of professional negotiation, technical communication, and academic presentations",
+    "contact.title": "Contact",
+    "contact.email": "Email",
+    "contact.phone": "Phone",
+    "contact.ready": "Looking forward to working with you",
+    "footer.rights": "All Rights Reserved"
+  }
+};
+
+const siteCopy = {
+  'zh-CN': {
+    ...originalCopy['zh-CN'],
+    'site.title': 'Tiger Yu | 建筑设计',
+    skipContent: '跳到正文', navigation: '主导航',
+    lead: '三十年建筑设计、城市规划与大型项目设计主持经验。',
+    viewExperience: '查看职业经历', modelAlt: '米白色的建筑模型插图',
+    explore: '向下浏览', skipAnimation: '跳过动画',
+    aboutTitle: '关于 Tiger Yu', profile: '专注建筑设计、城市规划与大型项目，曾参与及主持大中型方案近百项。',
+    collaboration: '毕业于华中科技大学建筑学专业。曾与来自香港、美国、澳大利亚和泰国的建筑团队合作，具备跨文化设计协调和商务谈判经验。',
+    focusDesign: '建筑与城市设计', focusInternational: '国际项目合作', focusDelivery: '设计深化与本地化',
+    contactHeading: '聊聊您的项目', toTop: '回到顶部 ↑',
+  },
+  en: {
+    ...originalCopy.en,
+    'site.title': 'Tiger Yu | Architecture',
+    skipContent: 'Skip to content', navigation: 'Main navigation',
+    lead: 'Three decades in architecture, urban planning and leading large projects.',
+    viewExperience: 'View experience', modelAlt: 'Illustration of an ivory architectural model',
+    explore: 'Scroll to explore', skipAnimation: 'Skip animation',
+    aboutTitle: 'About Tiger Yu', profile: 'Tiger Yu has contributed to and led nearly 100 medium and large projects in architecture and urban planning.',
+    collaboration: 'He holds a Bachelor of Architecture from Huazhong University of Science and Technology. He has worked with teams in Hong Kong, the United States, Australia and Thailand, coordinating design across cultures and supporting business negotiations.',
+    focusDesign: 'Architecture and urban design', focusInternational: 'International collaboration', focusDelivery: 'Design development and localization',
+    contactHeading: 'Let’s talk about your project', toTop: 'Back to top ↑',
+  },
+};
+
+for (const language of Object.values(siteCopy)) {
+  for (const [key, value] of Object.entries(language)) {
+    if (Array.isArray(value)) value.forEach((item, index) => { language[`${key}.${index}`] = item; });
+  }
+}
